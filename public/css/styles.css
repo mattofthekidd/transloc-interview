@@ -1,3 +1,7 @@
+body {
+    background-color: black;
+}
+
 #mapDiv {
     min-height: 700px;
     min-width: 700px;

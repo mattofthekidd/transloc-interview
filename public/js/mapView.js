@@ -17,7 +17,7 @@ var coords = map.getBounds();
         id: "netHeat",
         type: "heatmap",
         source: "points",
-        // maxzoom: 20,
+        maxzoom: 20,
         paint: {
             'heatmap-weight': {
                 property: '.5',
