@@ -1,58 +1,65 @@
-//I'm still pretty novice with nodejs
 const express = require('express');
 const path = require('path');
 var app = express();
 const mapboxgl = require('mapbox-gl');
+const parse = require('csv-parser');
 
 const fs = require('fs');
-const zip = require('adm-zip');
+// const zip = require('adm-zip');
 // const zipper =  new zip();
-const parse = require('csv-parser');
+// const parse = require('csv-parser');
 const PORT = process.env.PORT || 5000;
 var results = [];
 const file = "./public/data/GeoLite2-City-Blocks-IPv4.csv";
-const geoJson = "./public/data/points.geojson";
+const geoJson = "./public/data/points.json";
 
 // https://www.npmjs.com/package/csv-parser
 // used a library to save time. 
 function loader() {
     try {
-        if (!fs.existsSync(geoJson) && !fs.existsSync(geoJson+".zip") && !!fs.existsSync(file)) {
+        // if (fs.existsSync(geoJson)) {
+        //         // we have an unzipped verson we can load
+        //         // let x = JSON.parse(fs.readFileSync(geoJson));
+        //         results = JSON.parse(fs.readFileSync(geoJson));
+        //         console.log("Processed file already exists and does not need to be generated.");
+        // }
+        if (!!fs.existsSync(file)) {
             //We have no cached version to use but we have the original document still
             //Format the csv into an appropriate format for later filtering.
             fs.createReadStream(file)
                 .pipe(parse())
                 .on('data', data => {
-                    let temp = {
-                        "type": "Feature",
-                        "geometry": {
-                            "type": "Point",
-                            "coordinates": [data.longitude, data.latitude]
-                        }
-                    }
-                    results.push(temp)
+                    // let temp = {
+                    //     "type": "Feature",
+                    //     "geometry": {
+                    //         "type": "Point",
+                    //         "coordinates": [data.longitude, data.latitude]
+                    //     }
+                    // }
+                    results.push([data.longitude, data.latitude])
                 })
-                .on('end', () => {                    
-                    fs.writeFileSync(geoJson, JSON.stringify(results));
+                .on('end', () => {
+                    console.log("Parsing complete.")
+                    // fs.writeFileSync(geoJson, JSON.stringify(results));
                 })
-            console.log("no geojson present so one has been generated.")
+            // console.log("No processed present so one has been generated.")
 
         }
-        else if (fs.existsSync(geoJson + ".zip") && !fs.existsSync(geoJson)) {
-            //we need to unzip the zipped version
-            //Found this guy so I could upload a zipped version of the geojson to github
-            const zipper = new zip(geoJson+".zip");
+        // else if (fs.existsSync(geoJson + ".zip") && !fs.existsSync(geoJson)) {
+        //     //we need to unzip the zipped version
+        //     //Found this guy so I could upload a zipped version of the geojson to github
+        //     const zipper = new zip(geoJson+".zip");
 
-            zipper.extractAllTo('./public/data');
-            results = JSON.parse(fs.readFileSync(geoJson));
+        //     zipper.extractAllTo('./public/data');
+        //     results = JSON.parse(fs.readFileSync(geoJson));
 
-            console.log("geojson needs to be unzipped")
-        }
-        else if(fs.existsSync(geoJson)) {
-            // we have an unzipped verson we can load
-            results = JSON.parse(fs.readFileSync(geoJson));
-            console.log("geojson file already exists and does not need to be generated.");
-        }
+        //     console.log("geojson needs to be unzipped")
+        // }
+        // else if(fs.existsSync(geoJson)) {
+        //     // we have an unzipped verson we can load
+        //     results = JSON.parse(fs.readFileSync(geoJson));
+        //     console.log("geojson file already exists and does not need to be generated.");
+        // }
         else {
             //Something wonky happened
             throw err;
@@ -79,10 +86,16 @@ function getPoints(topLng, topLat, btmLng, btmLat) {
     //Theoretically grouping the IPs by the whole number in longitude and latitude 
     //  and then checking that against the bounds.
     for (let i = 0; i < results.length; i++) {
-        let point = new mapboxgl.LngLat(results[i].geometry.coordinates[0], results[i].geometry.coordinates[1]);
+        let point = new mapboxgl.LngLat(results[i][0], results[i][1]);
 
         if (bounds.contains(point)) {
-            arr["features"].push(results[i]);
+            arr["features"].push({
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": results[i]
+                }
+            });
         }
     }
     return arr;
@@ -93,7 +106,6 @@ function startServer() {
     app.use(express.static(path.join(__dirname + "/public")))
     app.get('/', (req, res) => {
         res.sendFile(path.join(__dirname + "/public/index.html"));
-        console.log("site loaded?")
     })
     app.get('/bounds', (req, res) => {
         if (!req.query.topLng || !req.query.topLat
