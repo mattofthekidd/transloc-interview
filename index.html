@@ -1,14 +1,18 @@
-<!DOCTYPE html>
-<html lang="en-us">
 
+<html lang="en">
 <head>
+    <meta charset="utf-8" />
     <script src='https://api.mapbox.com/mapbox-gl-js/v2.0.1/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.0.1/mapbox-gl.css' rel='stylesheet' />
 </head>
-
+<style>
+    #mapDiv {
+        width: 400px;
+        height: 400px;
+    }
+</style>
 <body>
-
-    <div id='mapDiv' style='width: 400px; height: 300px;'></div>
+    <div id='mapDiv'></div>
     <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoibWF0dG9mdGhla2lkZCIsImEiOiJja2tkY3JkbnMxOGg2Mm5yMXM5NXh0NHJvIn0.K9SZJvVIB-OqdXad0Kf9tg';
         var map = new mapboxgl.Map({

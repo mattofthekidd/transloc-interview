@@ -7,8 +7,11 @@
     "node": "14.x"
   },
   "dependencies": {
+    "d3": "^6.5.0",
+    "d3.js": "0.0.2-security",
     "express": "^4.17.1",
     "leaflet": "^1.7.1",
+    "leaflet.heat": "^0.2.0",
     "mapbox-gl": "^2.0.1"
   },
   "devDependencies": {},
