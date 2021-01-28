@@ -24,7 +24,7 @@ try {
                 let temp = {
                     "type": "Feature",
                     "properties": {
-                        "dbh": '1'
+                        "dbh": '2'
                     },
                     "geometry": {
                         "type": "Point",
@@ -79,7 +79,7 @@ function getPoints(topLng, topLat, btmLng, btmLat) {
     }];
     // arr[0]["features"]
     // console.log(results)
-    for(let i = 0; i < 15; i++) {
+    for(let i = 0; i < results.length; i++) {
         let point  = results[i].geometry.coordinates;
         // console.log(results[i].geometry.coordinates)
         // console.log("coords: ", topLng, btmLng, topLat, btmLat);

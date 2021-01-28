@@ -1,6 +1,6 @@
 #mapDiv {
-    min-height: 600px;
+    min-height: 700px;
+    min-width: 700px;
     max-height: 80%;
-    min-width: 600px;
-    max-width: 80%;
+    max-width: 95%;
 }

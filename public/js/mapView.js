@@ -7,9 +7,9 @@ var map = new mapboxgl.Map({
     zoom: 5 // starting zoom
 });
 //TODO: this will be an issue if the geojson isn't generated yet I think.
-const coords = map.getBounds();
+var coords = map.getBounds();
 
-console.log(coords._sw, coords._ne)
+// console.log(coords._sw, coords._ne)
 map.on('load', function () {
     map.addSource("points", {
         type: 'geojson',
@@ -20,10 +20,10 @@ map.on('load', function () {
         id: "netHeat",
         type: "heatmap",
         source: "points",
-        maxzoom: 15,
+        maxzoom: 10,
         paint: {
             'heatmap-weight': {
-                property: '10',
+                property: 'dbh',
                 type: 'exponential',
                 stops: [
                     [1, 0],
@@ -61,10 +61,13 @@ map.on('load', function () {
                 ]
             },
         }
-    }, 'waterway-label');
+    });
 });
-map.on("touchmove", event => {
-    console.log("touch");
-    const coords = map.getBounds();
-    map.setData(`/bounds?topLng=${coords._ne.lng}&topLat=${coords._ne.lat}&btmLng=${coords._sw.lng}&btmLat=${coords._sw.lat}`);
+map.on("dragend", event => {
+    console.log("mouseup");
+    // console.log(map);
+    // let temp = `/bounds?topLng=${coords._ne.lng}&topLat=${coords._ne.lat}&btmLng=${coords._sw.lng}&btmLat=${coords._sw.lat}`;
+    // console.log(temp)
+    map.getSource('points').setData(`/bounds?topLng=${coords._ne.lng}&topLat=${coords._ne.lat}&btmLng=${coords._sw.lng}&btmLat=${coords._sw.lat}`);
+    console.log(map.getSource('points'))
 })
