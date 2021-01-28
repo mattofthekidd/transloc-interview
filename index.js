@@ -27,9 +27,11 @@ function loader() {
                             "coordinates": [data.longitude, data.latitude]
                         }
                     }
-    else {
-        results = (JSON.parse(fs.readFileSync(geo)));
-        console.log("File already exists and does not need to be generated.");
+                    results.push(temp)
+                })
+                .on('end', () => {
+                    fs.writeFileSync(geoJson, JSON.stringify(results));
+                })
                 console.log("no geojson present so one has been generated.")
         }
         else {
@@ -39,18 +41,8 @@ function loader() {
     } catch (err) {
         console.error(err);
     }
-} catch (err) {
-    console.error(err);
 }
 
-
-const PORT = process.env.PORT || 5000;
-app.use(express.static(path.join(__dirname + "/public")))
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname + "/public/index.html"));
-    console.log("site loaded?")
-app.get('/bounds', (req, res) => {
-    }
 //I'd like to get this a little more streamlined or even find some method of grouping data.
 //Avoiding that for now as I'm not sure what would make meaningful groupings that wouldn't also
 // increase runtime by adding a bunch of new loops.
