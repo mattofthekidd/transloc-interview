@@ -6,16 +6,17 @@ const request = require('request');
 
 const fs = require('fs');
 const parse = require('csv-parser');
-const results = [];
+var results = [];
 
 // console.log(__dirname)
 // console.log(path.join(__dirname))
 
 const file = "./public/data/GeoLite2-City-Blocks-IPv4.csv";
+const geo = "./public/data/points.geojson";
 // https://www.npmjs.com/package/csv-parser
 // used a library to save time. 
 try {
-    if (!fs.existsSync("./points.geojson")) {
+    if (!fs.existsSync(geo)) {
         fs.createReadStream(file)
             .pipe(parse())
             .on('data', data => {
@@ -23,7 +24,7 @@ try {
                 let temp = {
                     "type": "Feature",
                     "properties": {
-                        "dbh": 1
+                        "dbh": '1'
                     },
                     "geometry": {
                         "type": "Point",
@@ -33,10 +34,12 @@ try {
                 results.push(temp)
             })
             .on('end', () => {
-                fs.writeFileSync("./points.geojson", JSON.stringify(results));
+                fs.writeFileSync(geo, JSON.stringify(results));
             })
     }
     else {
+        results = (JSON.parse(fs.readFileSync(geo)));
+        // console.log("else", results)
         console.log("File already exists and does not need to be generated.");
     }
 } catch (err) {
@@ -44,13 +47,20 @@ try {
 }
 
 
+
+
 const PORT = process.env.PORT || 5000;
 app.use(express.static(path.join(__dirname + "/public")))
 app.get('/', (req, res) => {
+    // if(!req.query) {
+    //     console.log(req.query)
+    // }
     res.sendFile(path.join(__dirname + "/public/index.html"));
+    console.log("site loaded?")
 })
-app.get('/request?top=&btm=', (req, res) => {
-    if (!req.query.top || !req.query.btm) {
+app.get('/bounds', (req, res) => {
+    if (!req.query.topLng || !req.query.topLat 
+        || !req.query.btmLng || !req.query.btmLat) {
         console.error("No query sent");
     }
     else {
@@ -62,20 +72,29 @@ app.listen(PORT);
 
 
 function getPoints(topLng, topLat, btmLng, btmLat) {
-    var arr = [{
+    // console.log("getPoints")
+    const arr = [{
         "type": "FeatureCollection",
         "features": [],
     }];
-    arr[0]["features"] = results.filter(
-        point => {
-            point[0] <= topLng &&
-                point[0] >= btmLng &&
-                point[1] <= topLat &&
-                point[1] >= btmLat
-        }
-    );
-    console.log(arr);
-    return arr;
+    // arr[0]["features"]
+    // console.log(results)
+    for(let i = 0; i < 15; i++) {
+        let point  = results[i].geometry.coordinates;
+        // console.log(results[i].geometry.coordinates)
+        // console.log("coords: ", topLng, btmLng, topLat, btmLat);
+        // console.log(point[0] , ", ", point[1])
+        if(point[0] <= topLng &&
+            point[0] >= btmLng &&
+            point[1] <= topLat &&
+            point[1] >= btmLat) {
+                // console.log("who hurt you?")
+                arr[0]["features"].push(results[i]);
+            }
+    }
+
+    // console.log(arr);
+    return arr[0];
 }
 
 
