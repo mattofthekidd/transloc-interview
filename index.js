@@ -1,21 +1,18 @@
-const express = require('express');
-const path = require('path');
-var app = express();
-const mapboxgl = require('mapbox-gl');
-const parse = require('csv-parser');
+'use strict'
 
-const fs = require('fs');
-// const zip = require('adm-zip');
-// const zipper =  new zip();
-// const parse = require('csv-parser');
+const mapboxgl = require('mapbox-gl');
+
 const PORT = process.env.PORT || 5000;
-var results = [];
-const file = "./public/data/GeoLite2-City-Blocks-IPv4.csv";
-const geoJson = "./public/data/points.json";
+const results = [];
+// const geoJson = "./public/data/points.json";
 
 // https://www.npmjs.com/package/csv-parser
 // used a library to save time. 
 function loader() {
+    const fs = require('fs');
+    const parse = require('csv-parser');
+    const file = "./public/data/GeoLite2-City-Blocks-IPv4.csv";
+
     try {
         // if (fs.existsSync(geoJson)) {
         //         // we have an unzipped verson we can load
@@ -36,30 +33,16 @@ function loader() {
                     //         "coordinates": [data.longitude, data.latitude]
                     //     }
                     // }
-                    results.push([data.longitude, data.latitude])
+                    if (!results[Math.floor(data.longitude)]) {
+                        results[Math.floor(data.longitude)] = [];
+                    }
+                    results[Math.floor(data.longitude)].push([data.longitude, data.latitude])
                 })
                 .on('end', () => {
                     console.log("Parsing complete.")
                     // fs.writeFileSync(geoJson, JSON.stringify(results));
                 })
-            // console.log("No processed present so one has been generated.")
-
         }
-        // else if (fs.existsSync(geoJson + ".zip") && !fs.existsSync(geoJson)) {
-        //     //we need to unzip the zipped version
-        //     //Found this guy so I could upload a zipped version of the geojson to github
-        //     const zipper = new zip(geoJson+".zip");
-
-        //     zipper.extractAllTo('./public/data');
-        //     results = JSON.parse(fs.readFileSync(geoJson));
-
-        //     console.log("geojson needs to be unzipped")
-        // }
-        // else if(fs.existsSync(geoJson)) {
-        //     // we have an unzipped verson we can load
-        //     results = JSON.parse(fs.readFileSync(geoJson));
-        //     console.log("geojson file already exists and does not need to be generated.");
-        // }
         else {
             //Something wonky happened
             throw err;
@@ -78,22 +61,37 @@ function getPoints(topLng, topLat, btmLng, btmLat) {
         new mapboxgl.LngLat(topLng, topLat)
     );
 
-    const arr = {
+    let arr = {
         "type": "FeatureCollection",
         "features": [],
     };
     //I hate this but it needs to check every record everytime we want an update.
     //Theoretically grouping the IPs by the whole number in longitude and latitude 
     //  and then checking that against the bounds.
-    for (let i = 0; i < results.length; i++) {
-        let point = new mapboxgl.LngLat(results[i][0], results[i][1]);
-
+    let topFloor = Math.floor(topLng);
+    let btmFloor = Math.floor(btmLng);
+    if (topFloor != btmFloor) {
+        for (let i = 0; i < results[btmFloor].length; i++) {
+            let point = new mapboxgl.LngLat(results[btmFloor][i][0], results[btmFloor][i][1]);
+            if (bounds.contains(point)) {
+                arr["features"].push({
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": results[btmFloor][i]
+                    }
+                });
+            }
+        }
+    }
+    for (let i = 0; i < results[topFloor].length; i++) {
+        let point = new mapboxgl.LngLat(results[topFloor][i][0], results[topFloor][i][1]);
         if (bounds.contains(point)) {
             arr["features"].push({
                 "type": "Feature",
                 "geometry": {
                     "type": "Point",
-                    "coordinates": results[i]
+                    "coordinates": results[topFloor][i]
                 }
             });
         }
@@ -103,6 +101,9 @@ function getPoints(topLng, topLat, btmLng, btmLat) {
 
 //In a function because it looks nicer this way.
 function startServer() {
+    const express = require('express');
+    const path = require('path');
+    var app = express();
     app.use(express.static(path.join(__dirname + "/public")))
     app.get('/', (req, res) => {
         res.sendFile(path.join(__dirname + "/public/index.html"));
