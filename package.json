@@ -8,10 +8,8 @@
   },
   "dependencies": {
     "csv-parser": "^3.0.0",
-    "d3": "^6.5.0",
-    "d3.js": "0.0.2-security",
     "express": "^4.17.1",
-    "request": "^2.88.2"
+    "mapbox-gl": "^2.0.1"
   },
   "devDependencies": {},
   "scripts": {
