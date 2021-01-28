@@ -20,35 +20,35 @@ app.listen(PORT);
 const file = "./public/data/GeoLite2-City-Blocks-IPv4.csv";
 // https://www.npmjs.com/package/csv-parser
 // used a library to save time. 
-fs.createReadStream(file)
-    .pipe(parse())
-    .on('data', data => {
-        let temp = {
-            "type": "Feature",
-            "properties": {
-                "network": data.network,
-                "dbh": 1
-            },
-            "geometry": {
-                "type": "Point",
-                "coordinates": [data.latitude, data.longitude]
+try {
+    if(!fs.existsSync(file)) {
+        fs.createReadStream(file)
+        .pipe(parse())
+        .on('data', data => {
+            //I like to build it into a temporary variable
+            let temp = {
+                "type": "Feature",
+                "properties": {
+                    "network": data.network,
+                    "dbh": 1
+                },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [data.latitude, data.longitude]
+                }
             }
-        }
-        results[0]["features"].push(temp)
-    })
-    .on('end', () => {
-        // console.log(results[0]["features"])
-    })
-
-    /*
-    {
-  "type": "Feature",
-  "geometry": {
-    "type": "Point",
-    "coordinates": [125.6, 10.1]
-  },
-  "properties": {
-    "name": "Dinagat Islands"
-  }
+            results[0]["features"].push(temp)
+        })
+        .on('end', () => {
+            fs.writeFileSync("./public/data/points.geojson", JSON.stringify(results));
+        })
+    } 
+    else {
+        console.log("File already exists and does not need to be generated.");
+    }
+} catch(err) {
+    console.error(err);
 }
-    */
+
+
+
