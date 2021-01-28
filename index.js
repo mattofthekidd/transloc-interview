@@ -17,7 +17,7 @@ const geoJson = "./public/data/points.geojson";
 // used a library to save time. 
 function loader() {
     try {
-        if (!fs.existsSync(geoJson) && !fs.existsSync(geoJson+".zip") && fs.existsSync(file)) {
+        if (!fs.existsSync(geoJson) && !fs.existsSync(geoJson+".zip") && !!fs.existsSync(file)) {
             //We have no cached version to use but we have the original document still
             //Format the csv into an appropriate format for later filtering.
             fs.createReadStream(file)
