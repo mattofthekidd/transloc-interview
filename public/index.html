@@ -14,75 +14,7 @@
 
 <body>
     <div id='mapDiv'></div>
-    <script>
-
-        mapboxgl.accessToken = 'pk.eyJ1IjoibWF0dG9mdGhla2lkZCIsImEiOiJja2tkY3JkbnMxOGg2Mm5yMXM5NXh0NHJvIn0.K9SZJvVIB-OqdXad0Kf9tg';
-        var map = new mapboxgl.Map({
-            container: 'mapDiv',
-            style: 'mapbox://styles/mapbox/streets-v11', // stylesheet location
-            center: [-74.5, 40], // starting position [lng, lat]
-            zoom: 9 // starting zoom
-        });
-        //TODO: this will be an issue if the geojson isn't generated yet I think.
-        const coords = map.getBounds();
-        console.log(coords._sw, coords._ne)
-        map.on('load', function () {
-            map.addSource("points", {
-                type: 'geojson',
-                data: `/request?top=${coords._ne}&bot=${coords._sw}`
-                // data: 'https://docs.mapbox.com/mapbox-gl-js/assets/earthquakes.geojson'
-            });
-            map.addLayer({
-                id: "netHeat",
-                type: "heatmap",
-                source: "points",
-                maxzoom: 15,
-                paint: {
-                    'heatmap-weight': {
-                        property: 'dbh',
-                        type: 'exponential',
-                        stops: [
-                            [1, 0],
-                            [62, 1]
-                        ]
-                    },
-                    'heatmap-intensity': {
-                        stops: [
-                            [11, 1],
-                            [15, 3]
-                        ]
-                    },
-                    'heatmap-color': [
-                        'interpolate',
-                        ['linear'],
-                        ['heatmap-density'],
-                        0, 'rgba(236,222,239,0)',
-                        0.2, 'rgb(208,209,230)',
-                        0.4, 'rgb(166,189,219)',
-                        0.6, 'rgb(103,169,207)',
-                        0.8, 'rgb(28,144,153)'
-                    ],
-                    // increase radius as zoom increases
-                    'heatmap-radius': {
-                        stops: [
-                            [11, 15],
-                            [15, 20]
-                        ]
-                    },    // decrease opacity to transition into the circle layer
-                    'heatmap-opacity': {
-                        default: 1,
-                        stops: [
-                            [14, 1],
-                            [15, 0]
-                        ]
-                    },
-                }
-            }, 'waterway-label');
-        });
-        map.on("click", (event) => {
-            console.log(event.lngLat);
-        })
-    </script>
+    <script src="/js/mapView.js"></script>
 </body>
 
 </html>

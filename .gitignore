@@ -102,3 +102,8 @@ dist
 
 # TernJS port file
 .tern-port
+.DS_Store
+public/data/GeoLite2-City-Blocks-IPv4.csv
+public/data/points.geojson
+public/data/trees.geojson
+points.geojson
