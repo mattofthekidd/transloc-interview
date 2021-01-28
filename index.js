@@ -5,6 +5,8 @@ var app = express();
 const mapboxgl = require('mapbox-gl');
 
 const fs = require('fs');
+const zip = require('adm-zip');
+// const zipper =  new zip();
 const parse = require('csv-parser');
 const PORT = process.env.PORT || 5000;
 var results = [];
@@ -15,7 +17,8 @@ const geoJson = "./public/data/points.geojson";
 // used a library to save time. 
 function loader() {
     try {
-        if (!fs.existsSync(geoJson)) {
+        if (!fs.existsSync(geoJson) && !fs.existsSync(geoJson+".zip") && fs.existsSync(file)) {
+            //We have no cached version to use but we have the original document still
             //Format the csv into an appropriate format for later filtering.
             fs.createReadStream(file)
                 .pipe(parse())
@@ -29,14 +32,30 @@ function loader() {
                     }
                     results.push(temp)
                 })
-                .on('end', () => {
+                .on('end', () => {                    
                     fs.writeFileSync(geoJson, JSON.stringify(results));
                 })
-                console.log("no geojson present so one has been generated.")
+            console.log("no geojson present so one has been generated.")
+
+        }
+        else if (fs.existsSync(geoJson + ".zip") && !fs.existsSync(geoJson)) {
+            //we need to unzip the zipped version
+            //Found this guy so I could upload a zipped version of the geojson to github
+            const zipper = new zip(geoJson+".zip");
+
+            zipper.extractAllTo('./public/data');
+            results = JSON.parse(fs.readFileSync(geoJson));
+
+            console.log("geojson needs to be unzipped")
+        }
+        else if(fs.existsSync(geoJson)) {
+            // we have an unzipped verson we can load
+            results = JSON.parse(fs.readFileSync(geoJson));
+            console.log("geojson file already exists and does not need to be generated.");
         }
         else {
-            results = (JSON.parse(fs.readFileSync(geoJson)));
-            console.log("geojson file already exists and does not need to be generated.");
+            //Something wonky happened
+            throw err;
         }
     } catch (err) {
         console.error(err);
